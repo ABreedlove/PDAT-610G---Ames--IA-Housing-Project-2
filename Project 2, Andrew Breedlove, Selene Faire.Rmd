@@ -1,0 +1,142 @@
+---
+title: "Project 2"
+author: "Andrew Breedlove, Selene Faire"
+date: "2024-02-19"
+output: html_document
+---
+
+---
+title: "Neighboorhood Expansion as seen in Ames, Iowa"
+author: "Andrew Breedlove"
+date: "2024-01-29"
+output:
+  word_document: default
+  html_document: default
+---
+
+# Abstract
+
+In the following project, we aimed to study the housing market as it exists within
+Ames, Iowa across a period of 2006 - 2010 and draw inferences about that subset 
+of the population by comparing our findings with the larger (and later) housing 
+market trends going on across the country. It should be noted that the Ames data 
+set has 2930 observations and a large number of explanatory variables (23 nominal, 
+23 ordinal, 14 discrete, and 20 continuous).
+
+## Introduction
+
+As many are well aware, housing prices have skyrocketed in our country across the
+last decade. Looking at per-state housing price growth, the highest rates we've seen 
+across this period is in states such as Idaho where prices have grown +165% (Jones, 2023).
+Even the states with the least growth in housing prices have seen at least +29.5%
+in their median housing market list prices, the lowest in this case being Lousiana (Jones, 2023).
+Iowa is one of the latter states which has seen the least growth over this period,
+just barely missing the top 10 bottom states in median housing price growth and coming
+in at number 11 at +68% (Jones, 2023). If we were to consider the market across the 
+country to be inflated, then Iowa, as one of the least inflated housing markets across
+the states, could be an interesting area to examine in being fairly contrasting 
+against the overall trend.
+
+We'll also want to make inferences about the kind of people / families moving into 
+Ames as a city. This should be an interesting city to examine in terms of cities as 
+a whole in Iowa, as it is ranked number 5 on top 10 metropolitan cities in Iowa with the fasting growing sales price (Redfin), but does not make the list of top 10 most competitive cities in Iowa (Redfin) (meaning that the median number of days that a house stays on the market is not low enough to make the top 10).
+
+All these things considered, we might ask ourselves the following overarching questions:
+
+What are the quickest expanding neighborhoods and what does this say about people
+moving into Ames, Iowa in general? (Var: Neighborhood, Year_sold, Mo_Sold)
+
+
+## MethodS
+
+Our methodology for answering the questions above will consist of analyzing the 
+Ames Housing dataset, which we will load using the code block below:
+
+```{R Introduction}
+library(AmesHousing)
+AmesData<-make_ames( )
+
+# Example of probing the Ames Housing data set
+#mean(AmesData$Sale_Price)
+```
+
+We can answer the questions above by grouping the Ames Housing data and filtering 
+/ mutating such based on the question we're answering using the tidyverse library.
+The following is an example of how we will do such:
+
+```{R Ames Analysis Example}
+# Load the tidyverse package with dplyr commands.
+library(tidyverse)
+
+# Here we will make a data frame representing the Ames set with less variables for
+# readability / summarization
+
+AmesDataSimple <- AmesData %>%
+  select(Neighborhood, Sale_Price, Year_Built, Year_Sold, Mo_Sold)
+
+# Here we group by neighborhood, sort by descending sale price and summarize
+AmesDataSimple %>%	group_by(Neighborhood) %>%
+  summarize(n = n(), Price.Med = median(Sale_Price, na.rm=TRUE), Feet.Std = sd(Sale_Price, na.rm=TRUE)) %>%
+  arrange(desc(Price.Med))
+```
+
+As you can see above, we can use the tidyverse library to accomplish a lot. In our
+example, we selected just a few of the many variables present across the dataset
+(specifically the ones we will be dealing with the most in answering our research
+questions), ordered them by neighborhood, summarized this info by displaying the
+number of data points in each category along with the median sales price and standard deviation of such, and finally we sorted this output descendingly by median sale price. 
+
+All in all, this allowed us to display a list of the most expensive neighborhoods in
+Ames, Iowa, and displayed the functionalities we will rely on for the rest of this
+project.
+
+## Results
+
+As far as graphs which will be useful to us in answering our research questions, 
+we will probably rely on scatterplots and barcharts to visualize median household 
+prices over time and the neighborhoods with the most housing sales over time. 
+Examples of this are below:
+
+```{R Results Scatterplot}
+
+AmesDataSimple <- AmesDataSimple %>%
+  mutate(Sale_Price_in_Thousands = Sale_Price / 1000) %>%
+  mutate(Year_from_Start = Year_Sold - 2006) %>%
+  mutate(Months_from_Start = (Year_from_Start * 12) + Mo_Sold)
+
+attach(AmesDataSimple)
+plot(Months_from_Start, Sale_Price_in_Thousands, main="Ames Sales Price over Time",
+   xlab="Months from 2006", ylab="Price (Thousands)")
+
+# Add fit lines
+abline(lm(Sale_Price_in_Thousands~Months_from_Start), col="red") # regression line (y~x)
+```
+In the scatterplot above, we mutated our simplified reduced variable version of 
+the ames dataset such that we could display data over even increments of time, 
+in this case, one month. After we created the variables which allowed us to create
+a timeline of however many months after the beginning of the dataset that an entry
+was made, we drew a regression line to exemplify what we might do to visualize 
+trends.
+
+The following code creates a barchart to show us the popularity of each of the
+neighborhoods in the Ames data set. The x-axis represents each neighborhood and 
+the y-axis represents the number of entries for each neighborhood (which should
+translate to number of sales).
+
+```{R Results Barchart}
+
+barplot(table(AmesDataSimple$Neighborhood), las=2)
+```
+As we can see above, this is another good example of how we will visualize the
+data in such a way that we can answer our research questions and convey those
+answers easily.
+
+## Discussion
+
+
+
+## Citations
+
+1. Jones, Jonathan. “Cities with the Largest Increase in Home Prices over the Last Decade [2023].” Construction Coverage, December 6, 2023. https://constructioncoverage.com/research/cities-with-the-largest-home-price-growth-last-decade#:~:text=Over%20the%20past%20decade%2C%20which,Index%20rose%20by%20just%2032%25. 
+
+2. Redfin. “Iowa Housing Market.” Redfin. Accessed January 26, 2024. https://www.redfin.com/state/Iowa/housing-market. 
