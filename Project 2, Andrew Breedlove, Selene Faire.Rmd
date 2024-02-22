@@ -49,6 +49,9 @@ We decided to filter our dataset into a working dataset in the following ways:
 Justification: I know this is the justification but I'm not sure how to quantify
 whats going on in this graph
 ```{R housesafter1950}
+# Create a copy of the cleaned data.
+ames <- make_ordinal_ames()
+
 plot(x=ames$Year_Built, y=ames$Year_Remod_Add)
 ```
 2. Only houses sold under normal sale condition
@@ -65,11 +68,15 @@ The following code block shows how we filtered the original dataset down into ou
 working dataset:
 
 ```{R Introduction}
+library(tidyverse)
+# Load the Ames dataset
 library(AmesHousing)
-AmesData<-make_ames( )
+# Create a copy of the cleaned data.
+ames <- make_ordinal_ames()
 
-# Filter to only houses built after 1950
-ames.working <- ames %>% filter(Year_Built >= 1950)
+ames$Remodeled <- ames$Year_Built != ames$Year_Remod_Add
+
+ames.working <- ames
 
 # Add a variable indicating whether or not a house has been remodeled
 ames.working$Remodeled <- ames.working$Year_Built != ames.working$Year_Remod_Add
@@ -78,7 +85,7 @@ ames.working$Remodeled <- ames.working$Year_Built != ames.working$Year_Remod_Add
 ames.working <- ames %>% filter(Sale_Condition == "Normal")
 
 # Filter to the 5 neighborhoods we selected (Stone_Brook, Somerset, Northridge_Heights, Bloomington_Heights, Northridge)
-ames.working <- ames %>% filter(Neighborhood == "Stone_Brook" | Neighborhood == "Somerset" | Neighborhood == "Northridge_Heights" | Neighborhood == "Bloomington_Heights" | Neighborhood == "Northridge")
+ames.working <- ames %>% filter(Neighborhood == "Stone_Brook" | Neighborhood == "Somerset" | Neighborhood == "Northridge_Heights" | Neighborhood == "Greens" | Neighborhood == "Northridge")
 
 nrow(ames.working)
 
