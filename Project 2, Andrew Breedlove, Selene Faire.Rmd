@@ -85,7 +85,7 @@ ames.working$Remodeled <- ames.working$Year_Built != ames.working$Year_Remod_Add
 ames.working <- ames %>% filter(Sale_Condition == "Normal")
 
 # Filter to the 5 neighborhoods we selected (Stone_Brook, Somerset, Northridge_Heights, Bloomington_Heights, Northridge)
-ames.working <- ames %>% filter(Neighborhood == "Stone_Brook" | Neighborhood == "Somerset" | Neighborhood == "Northridge_Heights" | Neighborhood == "Greens" | Neighborhood == "Northridge")
+ames.working <- ames %>% filter(Neighborhood == "Stone_Brook" | Neighborhood == "Somerset" | Neighborhood == "Northridge_Heights" | Neighborhood == "Greens" | Neighborhood == "Northridge" |  Neighborhood == "Bloomington_Heights" )
 
 nrow(ames.working)
 
