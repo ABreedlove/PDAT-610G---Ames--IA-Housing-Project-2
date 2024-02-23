@@ -152,6 +152,18 @@ ggplot(ames.nbhd,aes(Sale_Price,Neighborhood)) +
   labs(title = "Top Neighborhoods: Sale Price") +
   xlab("Sale Price") + ylab("Neighoborhood") +
   scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+ggplot(ames.transf,aes(Sale_Price)) +
+  geom_histogram(aes(color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Sale Price") +
+  xlab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+ggplot(ames.nbhd,aes(Sale_Price)) +
+  geom_histogram(aes(color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Sale Price") +
+  xlab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
 ```
 
 XXXXX ***** XXXXX NOT SURE IF USEABLE
@@ -215,7 +227,111 @@ fit.corr <- lm(Sale_Price ~ Gr_Liv_Area + First_Flr_SF + Total_Bsmt_SF+ Lot_Area
 # Model adjusted r squared and graph
 summary(fit.corr)$adj.r.squared
 plot(fit.opendoor, which = 1, main = "Correlation")
+
+# House Style (Boxplot by Neighborhood)
+ggplot(ames.transf,aes(Sale_Price, House_Style, fill = Neighborhood)) +
+  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+  geom_boxplot() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: House Style", 
+       colour = "Neighborhood") +
+  xlab("House Style") + ylab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+# Year Built (Scatter plot by Neighborhood)
+ggplot(ames.transf,aes(Year_Built, Sale_Price, color = Neighborhood)) +
+  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
+  geom_point() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Year Built", 
+       colour = "Neighborhood") +
+  xlab("Year Built") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+# Bedrooms (Scatter plot by Neighborhood)
+ggplot() +
+  geom_point(data = ames.transf, aes(Bedroom_AbvGr, Sale_Price, color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Bedrooms") +
+  xlab("Bedrooms") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+# Bathrooms (Scatter plot by Neighborhood)
+ggplot() +
+  geom_point(data = ames.transf, aes(Bathroom_AvbGr, Sale_Price, color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Bathrooms (Above Ground)") +
+  xlab("Bathrooms") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+# Lot Area (Scatter plot by Neighborhood)
+ggplot(ames.transf,aes(Lot_Area, Sale_Price, color = Neighborhood)) +
+  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
+  geom_point() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Lot Area") +
+  xlab("Lot Area") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+# Livable Area (Scatter plot by Neighborhood) 
+  ggplot(ames.transf,aes(Gr_Liv_Area, Sale_Price, color = Neighborhood)) +
+  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
+  geom_point() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Livable Area") +
+  xlab("Livable Area") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
 ```
+4c. Neighborhood Comps: Distance
+****ADD NARRATIVE TO TIE TO RESULTS (I.E. HOA FOR TOP PICK NEIGHBORHOODS)??? ****
+
+
+4d. Neighborhood Comps: Location
+For location or placement as opendoor.com calls it, we have decided to look at a couple more variables, namely MS Zoning, Land Countour, Land Slope, and Condition 1 or proximity to variuos conditions such as arterial or feeder streets, railroads, or off-site features such as parks, greenbelts, etc.
+
+# MS Zoning
+ ggplot(ames.transf,aes(Sale_Price, MS_Zoning, fill = Neighborhood)) +
+  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+  geom_boxplot() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Zoning", 
+       colour = "Neighborhood") +
+  xlab("Zoning") + ylab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+# Land Contour
+  ggplot(ames.transf,aes(Sale_Price, Land_Contour, fill = Neighborhood)) +
+  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+  geom_boxplot() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Land Contour", 
+       colour = "Neighborhood") +
+  xlab("Land Contour") + ylab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+# Land Slope
+  ggplot(ames.transf,aes(Sale_Price, Land_Slope, fill = Neighborhood)) +
+  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+  geom_boxplot() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Land Slope", 
+       colour = "Neighborhood") +
+  xlab("Land Slope") + ylab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+# Condition 1 (Proximity to various conditions)
+  ggplot(ames.transf,aes(Sale_Price, Condition_1, fill = Neighborhood)) +
+  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+  geom_boxplot() +
+  facet_wrap(~Neighborhood) +
+  labs(title = "Top Neighborhoods: Proximity", 
+       colour = "Neighborhood") +
+  xlab("Proximity") + ylab("Sale Price") +
+  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+
+**** ADD ANY TO MODEL? ONLY LAND CONTOUR INCREASES TO 84.03%. MATERIAL? MAY NEED MAP ****
+
+```
+
+
 
 It should be noted that the Ames data set has 2930 observations and a large number of explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous). 
 In narrowing the data down to only houses built after 1950 and sold under normal sale conditions, after which we selected the top 5 neighborhoods we wanted to look at,
