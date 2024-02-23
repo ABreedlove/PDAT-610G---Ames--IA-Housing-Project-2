@@ -8,7 +8,7 @@ output: html_document
 # Abstract
 
 In the following project, we've aimed to study the housing market in Ames, Iowa across
-a period of 1950-2010 and select the top five highest performing neighborhoods in
+a period of 1950-2010 and select five highest performing neighborhoods in
 the market for the purpose of ranking them as the best neighborhoods in which to make real-estate investments. 
 
 ## Introduction
@@ -136,7 +136,7 @@ hist(ames.norm$Sale_Price, main = "All Neighborhoods", xlab = "Sale Price")
 hist(ames.nbhd$Sale_Price, main = "Top Neighborhoods", xlab = "Sale Price")
 hist(ames.other$Sale_Price, main = "Other Neighborhoods", xlab = "Sale Price")
 
-XXXXX ***** XXXXX NOT SURE IF USEABLE
+#XXXXX ***** XXXXX NOT SURE IF USEABLE
 
 library(scales)
 
@@ -152,6 +152,7 @@ ggplot(ames.nbhd,aes(Sale_Price,Neighborhood)) +
   labs(title = "Top Neighborhoods: Sale Price") +
   xlab("Sale Price") + ylab("Neighoborhood") +
   scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+```
 
 XXXXX ***** XXXXX NOT SURE IF USEABLE
 
@@ -183,7 +184,7 @@ ggplot(nbhd.yr.sold,aes(Year_Sold, M.Sale_Price, color=Neighborhood)) +
 
 4b. Neighborhood Comps: Feature Similarities
 
-For feature similarities, we also use Opendoor's list as a guide, which lists type of home, year built, number of bedrooms, bathrooms and square footage. We will used House Style for type of home, limit our the number of bedrooms and bathrooms to above ground, and use both lot and livable area for square footage. 
+For feature similarities, we also use Opendoor's list as a guide, which lists type of home, year built, number of bedrooms, bathrooms and square footage. We will use House Style for type of home, limit our the number of bedrooms and bathrooms to above ground, and use both lot and livable area for square footage. 
 
 We start by creating a new variable for the number of bathrooms by combining full baths and half baths. We decided not to include the bathrooms in the basement in order to maintain consistency with the number of bedrooms and livable area, which are both referring to areas that are above ground. 
 
