@@ -70,6 +70,7 @@ ames.norm$Lot_Price <- ames.norm$Sale_Price / ames.norm$Lot_Area
 # Add variable to calculate sale price per square foot, based on livable area
 ames.norm$Liv_Price <- ames.norm$Sale_Price / ames.norm$Gr_Liv_Area
 ```
+
 Then we create a summary of neighborhoods by the price categories (total sale, per lot sq ft, per livable sq ft) and count. We use the summary to compare the neighborhood averages to the data set averages in the three price categories and, based on neighborhoods that are above average in each price category, create a list of the top neighborhoods for our review. 
 
 We are also excluding two neighborhoods (Landmark and Green Hills) with less than five sales since we are exploring data that spans five years and feel that a minimum of five observations per neighborhood is prudent. 
@@ -95,6 +96,7 @@ top.nbhd <- summ.nbhd %>%
 top.nbhd
 dim(top.nbhd)
 ```
+
 Finally, we create a new data set based on this list. We have also created  two other data sets to compare to our top neighborhoods. The first transforms the neighborhood variable for neighborhoods not listed in our top neighborhoods to the name "Other". The second data set is then based on these neighborhoods. 
 
 ```{r}
@@ -169,7 +171,7 @@ ggplot(ames.nbhd,aes(Sale_Price)) +
 XXXXX ***** XXXXX NOT SURE IF USEABLE
 
 4. Critical factors that influence a home's value
-Justification: Now that we have selected our top neighborhoods, we return to [Opendoor.com](https://www.opendoor.com/articles/factors-that-influence-home-value) to evaluate the factors that are considered critical to influencing a home's value. The first factor is neighborhood comps. Opendoor provides advice to finding comps by suggesting a look at recency, feature similarities, distance and location. However, because our data set does not offer sufficient information on factors for evaluating distance (HOA rules, school districts, etc.) we will not be including this "critical factor" in our analysis. ***Location***
+Justification: Now that we have selected our top neighborhoods, we return to [Opendoor.com](https://www.opendoor.com/articles/factors-that-influence-home-value) to evaluate the factors that are considered critical to influencing a home's value. The first factor is neighborhood comps. Opendoor provides advice to finding comps by suggesting a look at recency, feature similarities, condition & quality, distance and location. However, because our data set does not offer sufficient information on factors for evaluating distance (HOA rules, school districts, etc.) we will not be including this "critical factor" in our analysis. ***Location***
 
 4a. Neighborhood Comps: Recency
 We begin our analysis with recency. Given the limits of our data set, we have decided to evaluate the year sold to determine if there are any patterns to the relationship between the year sold and the sale price. 
@@ -206,11 +208,13 @@ However, we were also curious to see if an alternate model based on the highest 
  
 ```{r}
 # Add new variable, addings full baths and half baths
-ames.nbhd$Bathroom_AvbGr <- ames.nbhd$Full_Bath + ames.nbhd$Half_Bath
+ames.nbhd$Bathroom_AbvGr <- ames.nbhd$Full_Bath + (0.5 * ames.nbhd$Half_Bath)
+ames.transf$Bathroom_AbvGr <- ames.transf$Full_Bath + (0.5 * ames.transf$Half_Bath)
 
 # Create linear regression model using opendoor.com's list of features
-fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AvbGr + Lot_Area + Gr_Liv_Area, data = ames.nbhd)
+fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AbvGr + Lot_Area + Gr_Liv_Area, data = ames.nbhd)
 
+summary(fit.opendoor)
 # Model adjusted r squared and graph
 summary(fit.opendoor)$adj.r.squared
 plot(fit.opendoor, which = 1, main = "Opendoor")
@@ -257,7 +261,7 @@ ggplot() +
 
 # Bathrooms (Scatter plot by Neighborhood)
 ggplot() +
-  geom_point(data = ames.transf, aes(Bathroom_AvbGr, Sale_Price, color = Neighborhood)) +
+  geom_point(data = ames.transf, aes(Bathroom_AbvGr, Sale_Price, color = Neighborhood)) +
   labs(title = "Top Neighborhoods: Bathrooms (Above Ground)") +
   xlab("Bathrooms") + ylab("Sale Price") +
   scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
@@ -283,12 +287,61 @@ ggplot(ames.transf,aes(Lot_Area, Sale_Price, color = Neighborhood)) +
 4c. Neighborhood Comps: Distance
 ****ADD NARRATIVE TO TIE TO RESULTS (I.E. HOA FOR TOP PICK NEIGHBORHOODS)??? ****
 
+4d. Neighborhoods Comps: Condition & Quality
 
-4d. Neighborhood Comps: Location
-For location or placement as opendoor.com calls it, we have decided to look at a couple more variables, namely MS Zoning, Land Countour, Land Slope, and Condition 1 or proximity to variuos conditions such as arterial or feeder streets, railroads, or off-site features such as parks, greenbelts, etc.
+Opendoor stresses that there is quite a bit of value in knowing that repairs will not
+be necessary for a while after purchasing a home. This depends on the condition of 
+the property when it is bought, as well as the materials and finish which make up 
+the initial quality of the home. The better the materials and finish, the longer a 
+buyer will have before they need to pay for repairs, adding value to the sales price
+of a home. 
+For this category, we'll be looking at the Overall_Cond variable for condition and
+the Overall_Qual variable for quality:
 
+```{r}
+# Overall Condition (Scatter plot by Neighborhood)
+ggplot() +
+  geom_point(data = ames.transf, aes(Overall_Cond, Sale_Price, color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Overall Condition") +
+  xlab("Quality") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+# Overall Quality (Scatter plot by Neighborhood)
+ggplot() +
+  geom_point(data = ames.transf, aes(Overall_Qual, Sale_Price, color = Neighborhood)) +
+  labs(title = "Top Neighborhoods: Overall Quality") +
+  xlab("Quality") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+```
+As we can see from the above, overall condition does not seem consistently trend
+with the sales price of a home seeing as the houses with the highest sales prices
+fell into the "average" condition category. This includes pretty much all of the 
+houses in our top neighborhoods.
+Overall quality however, seems to have a strong positive correlation with sales price
+and we can see from the graph that the houses in the neighborhoods we selected as
+the highest performing also have the highest overall quality of material and finish.
+Seeing as such, we'll go ahead and add Overall_Qual to our Opendoor influenced linear regression model and see how much it improves our R^2 value:
+
+```{r}
+# Create linear regression model using opendoor.com's list of features
+fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AbvGr + Lot_Area + Gr_Liv_Area + Overall_Qual, data = ames.nbhd)
+
+summary(fit.opendoor)
+# Model adjusted r squared and graph
+summary(fit.opendoor)$adj.r.squared
+plot(fit.opendoor, which = 1, main = "Opendoor")
+```
+As we can see above, adding Overall_Quality to our regression model improved our
+R^2 value by nearly 7%, making it a significantly correlated variable we'll be keeping
+in our final model.
+
+4e. Neighborhood Comps: Location
+For location or placement as opendoor.com calls it, we have decided to look at a couple more variables, namely MS Zoning, Land Countour, Land Slope, and Condition 1 or proximity to various conditions such as arterial or feeder streets, railroads, or off-site features such as parks, greenbelts, etc.
+
+```{r}
 # MS Zoning
- ggplot(ames.transf,aes(Sale_Price, MS_Zoning, fill = Neighborhood)) +
+  ggplot(ames.transf,aes(Sale_Price, MS_Zoning, fill = Neighborhood)) +
   geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
   geom_boxplot() +
   facet_wrap(~Neighborhood) +
@@ -327,68 +380,16 @@ For location or placement as opendoor.com calls it, we have decided to look at a
   xlab("Proximity") + ylab("Sale Price") +
   scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
 
-**** ADD ANY TO MODEL? ONLY LAND CONTOUR INCREASES TO 84.03%. MATERIAL? MAY NEED MAP ****
+# **** ADD ANY TO MODEL? ONLY LAND CONTOUR INCREASES TO 84.03%. MATERIAL? MAY NEED MAP ****
 
 ```
 
-
-
-It should be noted that the Ames data set has 2930 observations and a large number of explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous). 
-In narrowing the data down to only houses built after 1950 and sold under normal sale conditions, after which we selected the top 5 neighborhoods we wanted to look at,
-we now have 498 observations.
-
-The following code block shows how we filtered the original dataset down into our
-working dataset:
-
-```{R Introduction}
-library(tidyverse)
-# Load the Ames dataset
-library(AmesHousing)
-# Create a copy of the cleaned data.
-ames <- make_ordinal_ames()
-
-ames$Remodeled <- ames$Year_Built != ames$Year_Remod_Add
-
-ames.working <- ames
-
-# Add a variable indicating whether or not a house has been remodeled
-ames.working$Remodeled <- ames.working$Year_Built != ames.working$Year_Remod_Add
-
-# Filter to only Normal sale conditions
-ames.working <- ames %>% filter(Sale_Condition == "Normal")
-
-# Filter to the 5 neighborhoods we selected (Stone_Brook, Somerset, Northridge_Heights, Bloomington_Heights, Northridge)
-ames.working <- ames %>% filter(Neighborhood == "Stone_Brook" | Neighborhood == "Somerset" | Neighborhood == "Northridge_Heights" | Neighborhood == "Greens" | Neighborhood == "Northridge" |  Neighborhood == "Bloomington_Heights" )
-
-nrow(ames.working)
-
-```
 
 
 
 
 ## Results
 
-THIS PART IS LEFTOVER FROM PROJECT 1 & IS ONLY HERE IN CASE ANY OF THE CODE IS USEFUL
-As far as graphs which will be useful to us in answering our research questions, 
-we will probably rely on scatterplots and barcharts to visualize median household 
-prices over time and the neighborhoods with the most housing sales over time. 
-Examples of this are below:
-
-```{R Results Scatterplot}
-
-AmesDataSimple <- AmesDataSimple %>%
-  mutate(Sale_Price_in_Thousands = Sale_Price / 1000) %>%
-  mutate(Year_from_Start = Year_Sold - 2006) %>%
-  mutate(Months_from_Start = (Year_from_Start * 12) + Mo_Sold)
-
-attach(AmesDataSimple)
-plot(Months_from_Start, Sale_Price_in_Thousands, main="Ames Sales Price over Time",
-   xlab="Months from 2006", ylab="Price (Thousands)")
-
-# Add fit lines
-abline(lm(Sale_Price_in_Thousands~Months_from_Start), col="red") # regression line (y~x)
-```
 
 ## Discussion
 
