@@ -1,402 +1,343 @@
 ---
-title: "Project 2"
+title: "Ames Project: Part 2"
 author: "Andrew Breedlove, Selene Faire"
-date: "2024-02-19"
+date: "02-26-2024"
 output: html_document
 ---
 
 # Abstract
+In the following project, we've aimed to study the housing market in Ames, Iowa using a dataset which tracked real-estate sales in Ames across a period of 2006-2010 with the
+goal of finding the highest performing neighborhoods in the Ames real-estate market, 
+determining the most critical factors in real-estate sales prices and then using
+those variables to analyze and compare these highest performing neighborhoods towards
+some form of ranking across of each across each factor. This would be conducive towards
+our overall goal of providing insight into the best neighborhoods in Ames in which to make real-estate investments. 
 
-In the following project, we've aimed to study the housing market in Ames, Iowa across
-a period of 1950-2010 and select five highest performing neighborhoods in
-the market for the purpose of ranking them as the best neighborhoods in which to make real-estate investments. 
+# Introduction
+As many are well aware, housing prices have skyrocketed in our country across the last decade. Looking at per-state housing price growth, the highest rates we've seen across this period is in states such as Idaho where prices have grown +165% (Jones, 2023). Even the states with the least growth in housing prices have seen at least +29.5% in their median housing market list prices, the lowest in this case being Louisiana (Jones, 2023). Iowa is one of the latter states which has seen the least growth over this period, just barely missing the bottom 10 states in median housing price growth and coming at number 11 at +68% (Jones, 2023). If we were to consider the market across the country to be inflated, then Iowa, as one of the least inflated housing markets in the states, could represent a real estate market in its earlier stages of growth which might make for a good market to invest into.
 
-## Introduction
+If Iowa as a whole represents an deflated real-estate market, then Ames might represent a valuable city within that to examine in terms of real-estate investments. Ames is ranked number 5 on top 10 metropolitan cities in Iowa with the fasting growing sales price (Redfin), but does not make the list of top 10 most competitive cities in Iowa (Redfin) (meaning that the median number of days that a house stays on the market is not low enough to make the top 10). This means that in Ames, sales prices are growing and the market isn't so overtly competitive that real-estate investments would be difficult to make.
 
-As many are well aware, housing prices have skyrocketed in our country across the
-last decade. Looking at per-state housing price growth, the highest rates we've seen 
-across this period is in states such as Idaho where prices have grown +165% (Jones, 2023).
-Even the states with the least growth in housing prices have seen at least +29.5%
-in their median housing market list prices, the lowest in this case being Lousiana (Jones, 2023).
-Iowa is one of the latter states which has seen the least growth over this period,
-just barely missing the bottom 10 states in median housing price growth and coming
-in at number 11 at +68% (Jones, 2023). If we were to consider the market across the 
-country to be inflated, then Iowa, as one of the least inflated housing markets in the states, could represent a real estate market in its earlier stages of growth which might make for a good market to invest into.
+All these things considered, we might ask ourselves the following overarching question: What are the best neighborhoods in Ames, IA for real estate investment? 
 
-If Iowa as a whole represents an uninflated real-estate market, then Ames might represent
-a valuable city within that to examine in terms of real-estate investments. Ames is ranked number 5 on top 10 metropolitan cities in Iowa with the fasting growing sales price (Redfin), but does not make the list of top 10 most competitive cities in Iowa (Redfin) (meaning that the median number of days that a house stays on the market is not low enough to make the top 10). This means that in Ames, sales prices are growing and the market
-isn't so overtly competitive that real-estate investments would be difficult to make.
+# Methods
 
-All these things considered, we might ask ourselves the following overarching question:
+This section details the methods employed to identify the best neighborhoods for home purchase recommendations using the Ames housing dataset. 
 
-What are the best neighborhoods in Ames,IA for real estate investment? (Var: Neighborhood, Year_sold, Mo_Sold)
-
-
-## Methods
-
-We decided to modify our dataset into a working dataset in the following ways:
-
-1. Loading the Ames Housing Data Set
+We began by loading the Ames Housing data set. 
 
 ```{r}
-library(tidyverse)
+# Load data set
 library("AmesHousing")
-
-# Create a copy of the cleaned data
 ames <- make_ordinal_ames()
+
+dim(ames)
 ```
 
-2. Only houses sold under normal sale condition
-Justification: The purpose of this project is to create a common use model to estimate a “typical” sale, therefore, according to the [data documentation](https://jse.amstat.org/v19n3/decock/DataDocumentation.txt) for this data set, it is in our best interest to remove any observations that do not seem typical (such as foreclosures or family sales). With this in mind, the data set has been filtered to only include "Normal" sales conditions. 
+We then modified the data set by filtering for “Normal” conditions in the Sale_Condition variable.
+
+Justification: The purpose of this project is to create a common use model to estimate a “typical” sale, therefore, according to the data documentation for this data set (DeCock), it was in our best interest to remove any observations that do not seem typical (such as foreclosures or family sales). Any sale that is not normal does not represent a typical
+market transaction and is an outlier in that sense.
 
 ```{r}
-# Create a copy of the data, filtering for "Normal" sales conditions
-ames.norm <- ames %>%
+# Filtered for “Normal” sales conditions
+library(tidyverse)
+ames <- ames %>%
   filter(Sale_Condition == "Normal")
 
 # Call data dimensions
-dim(ames.norm)
+dim(ames)
 ```
 
-3. Top neighborhoods per total sale price and price per sq ft (lot and livable areas)
-Justification: Although many realtors agree that price per square foot doesn't give you a full picture of what a home has to offer, many agree that it is a good starting point to begin an evaluation, as it provides a foundation for the amount of space you're getting compared to the home price. This can be especially useful when looking into neighborhoods, as home values tend to be similar among comparable homes within the same neighborhood. In addition to square footage, a home’s usable space matters when determining its value.
-
-Therefore, to begin our examination of which neighborhoods offer the best opportunity for prospective buyers, we have added two new variables to our data set; Lot Price (lot area price p/sq ft) and Liv Price (livable area price p/sq ft). We will use these two new variables, in addition to the Sale Price, to select the neighborhoods that produce a higher average price in all three categories. 
-
+In order to continue narrowing down our list of neighborhoods for comparison, we then created two (2) new variables to evaluate price per square foot: Lot_Price (lot area price p/sq ft) and Liv_Price (livable area price p/sq ft). 
+Using these two new variables, in addition to the Sale Price, we would be able to select the neighborhoods that produce a higher average price in all three categories.
+	
 ```{r}
 # Add variable to calculate sale price per square foot, based on lot area
-ames.norm$Lot_Price <- ames.norm$Sale_Price / ames.norm$Lot_Area
+ames$Lot_Price <- ames$Sale_Price / ames$Lot_Area
 
 # Add variable to calculate sale price per square foot, based on livable area
-ames.norm$Liv_Price <- ames.norm$Sale_Price / ames.norm$Gr_Liv_Area
+ames$Liv_Price <- ames$Sale_Price / ames$Gr_Liv_Area
+
+dim(ames)
 ```
 
-Then we create a summary of neighborhoods by the price categories (total sale, per lot sq ft, per livable sq ft) and count. We use the summary to compare the neighborhood averages to the data set averages in the three price categories and, based on neighborhoods that are above average in each price category, create a list of the top neighborhoods for our review. 
-
-We are also excluding two neighborhoods (Landmark and Green Hills) with less than five sales since we are exploring data that spans five years and feel that a minimum of five observations per neighborhood is prudent. 
+We then created a summary data frame (summ.nbhd) for the purpose of grouping the neighborhoods and then summarizing the price categories (total sale, per lot sq ft, per livable sq ft) and count for each neighborhood. 
+This would allow us to compare the averages of the 28 individual neighborhoods to the overall averages in the three price categories above.
 
 ```{r}
-# Summary of Sale Price, Lot (Area) Price, Livable (Area) Price averages by neighorhood
-summ.nbhd <- ames.norm %>%
+# Summary of price averages by neighborhood
+summ.nbhd <- ames %>%
   group_by(Neighborhood) %>%
   summarize(M.Sale_Price = mean(Sale_Price),M.Lot_Price = mean(Lot_Price),M.Liv_Price = mean(Liv_Price),N.Count = n())
-
 summ.nbhd
+```
 
-# Summary of number of observations by neighborhood
-ames.norm %>%
-  group_by(Neighborhood) %>%
-  summarize(n_count = n()) %>%
-  arrange(n_count)
+We then filtered the summary data frame to create a list (top.nbhd) which included only neighborhoods with individual means in the three (3) price categories we defined that were above the all-inclusive mean in the same category. We also decided to exclude neighborhoods with a count of less than five sales seeing as we were exploring data that spanned five years and felt that a minimum of five observations per neighborhood was prudent. 
+From the list above, we created a list of top neighborhoods for our review which were above average in our three selected price categories. This list produced six neighborhoods for us to delve into: Bloomington Heights, Greens, Northridge, Northridge Heights, Somerset, and Stone Brook.
 
+```{r}
 # List of top neighborhoods (above average for Sale Price, Lot Price, and Livable Price)
 top.nbhd <- summ.nbhd %>%
-  filter(M.Sale_Price >= mean(ames.norm$Sale_Price),M.Lot_Price >= mean(ames.norm$Lot_Price),M.Liv_Price >= mean(ames.norm$Liv_Price),N.Count >= 5)
-
+  filter(M.Sale_Price >= mean(ames$Sale_Price),M.Lot_Price >= mean(ames$Lot_Price),M.Liv_Price >= mean(ames$Liv_Price),N.Count >= 5)
 top.nbhd
-dim(top.nbhd)
 ```
 
-Finally, we create a new data set based on this list. We have also created  two other data sets to compare to our top neighborhoods. The first transforms the neighborhood variable for neighborhoods not listed in our top neighborhoods to the name "Other". The second data set is then based on these neighborhoods. 
+While our overall purpose in our study is to analyze the differences within our sample of selected neighborhoods, we would still need to be able to visualize the differences between our sample of top neighborhoods and the rest of the neighborhoods in Ames in order to confirm the validity of our selection. To do this, we created one (1) new variable, Top_Nbhd, using the list of top neighborhoods above. This would allow us to distinguish between the neighborhoods we selected and the “others” neighborhoods as a less distinguished set. We named this category ”xOtherx” in order to place the it as alphabetically last in our graphs. 
+
 
 ```{r}
-# Create a copy of the data, filtering for "Top" neighborhoods
- ames.nbhd <- ames.norm %>%
-  filter(Neighborhood %in% top.nbhd$Neighborhood)
-
-dim(ames.nbhd)
-
-# Create a copy of the data, transforming neighborhood names not in our list to "xOtherx"
-ames.transf <- transform(ames.norm, Neighborhood = factor(replace(as.character(Neighborhood),list = !Neighborhood %in% top.nbhd$Neighborhood,values = "xOtherx")))
-
-dim(ames.transf)
-
-# Create a copy of the data, filtering for "xOtherx" neighborhoods
-ames.other <- ames.transf %>%
-  filter(Neighborhood == "xOtherx")
-
-dim(ames.other)
+# Add variable to determine if a neighborhood is found in the top.nbhd list, if not categorized as “xOtherx”
+ames$Top_Nbhd <- ifelse(ames$Neighborhood %in% top.nbhd$Neighborhood,as.character(ames$Neighborhood),"xOtherx")
+	
+dim(ames)
 ```
+After establishing the top neighborhoods for real-estate investment in Ames that 
+we would be comparing, we needed to establish and test a comparison criteria in the form
+of variables we would be using to create a linear regression model. This model would 
+allow us to confirm the validity of the variables we would then select and use to conduct our analysese.
+Before consulting our sources and attempting to come up with the best numerical and categorical variables for analysis, we decided to run a correlation analysis between sales price and all numerical variables to statistically identify the strongest relationships 
+in the numerical variables and provide ourselves with a base model against which to reference the model we would be creating which would include both numerical and categorical
+variables. 
+The biggest reason for limiting the correlation analysis to numerical variables is that 
+we knew there would be at least a few categorical variables that would have a lot of explanatory power in our final model, and we reasoned that we would be better served selecting those variables from our sources rather than from a correlation analysis.
 
-This list produced six neighborhoods for us to delve into: Bloomington Heights, Greens, Northridge, Northridge Heights, Somerset, and Stone Brook. These neighborhoods together have an average sale price of $270K, which is 53% higher than the average sale price of $176K for all neighborhoods, which makes them prime candidates for our analysis.
-
-```{r}
-# Summary of number of observations by "top" neighborhood
-ames.nbhd %>%
-  group_by(Neighborhood) %>%
-  summarize(n_count = n()) %>%
-  arrange(desc(n_count))
-
-# Statistical summaries of Sale Price for all three datasets
-summary(ames.nbhd$Sale_Price)
-summary(ames.transf$Sale_Price)
-summary(ames.other$Sale_Price)
-
-# Histograms of Sale Price for all three datasets
-par(mfrow=c(1,3))
-hist(ames.norm$Sale_Price, main = "All Neighborhoods", xlab = "Sale Price")
-hist(ames.nbhd$Sale_Price, main = "Top Neighborhoods", xlab = "Sale Price")
-hist(ames.other$Sale_Price, main = "Other Neighborhoods", xlab = "Sale Price")
-
-#XXXXX ***** XXXXX NOT SURE IF USEABLE
-
-library(scales)
-
-ggplot() +
-  geom_histogram(data = ames.other, aes(Sale_Price), fill = "gray") +
-  geom_histogram(data = ames.nbhd, aes(Sale_Price, color = Neighborhood)) +
-  labs(title = "Other v Top Neighborhoods: Sale Price") +
-  xlab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-ggplot(ames.nbhd,aes(Sale_Price,Neighborhood)) +
-  geom_point(aes(color = Neighborhood)) +
-  labs(title = "Top Neighborhoods: Sale Price") +
-  xlab("Sale Price") + ylab("Neighoborhood") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-ggplot(ames.transf,aes(Sale_Price)) +
-  geom_histogram(aes(color = Neighborhood)) +
-  labs(title = "Top Neighborhoods: Sale Price") +
-  xlab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-ggplot(ames.nbhd,aes(Sale_Price)) +
-  geom_histogram(aes(color = Neighborhood)) +
-  labs(title = "Top Neighborhoods: Sale Price") +
-  xlab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-```
-
-XXXXX ***** XXXXX NOT SURE IF USEABLE
-
-4. Critical factors that influence a home's value
-Justification: Now that we have selected our top neighborhoods, we return to [Opendoor.com](https://www.opendoor.com/articles/factors-that-influence-home-value) to evaluate the factors that are considered critical to influencing a home's value. The first factor is neighborhood comps. Opendoor provides advice to finding comps by suggesting a look at recency, feature similarities, condition & quality, distance and location. However, because our data set does not offer sufficient information on factors for evaluating distance (HOA rules, school districts, etc.) we will not be including this "critical factor" in our analysis. ***Location***
-
-4a. Neighborhood Comps: Recency
-We begin our analysis with recency. Given the limits of our data set, we have decided to evaluate the year sold to determine if there are any patterns to the relationship between the year sold and the sale price. 
-
-For this step, we decided to find the aggregated mean of the Sale Price by Neighborhood and Year Sold and then to plot the results by each top neighborhood. We have also included a graph to compare the group to the rest or "Other" neighborhoods. As can be seen, the majority of the neighborhoods show a dip in sales as they headed into 2010. This makes sense as that aligns with the housing market collapse of 2008. This can be seen in almost all of the neighborhoods, including the "Other" neighborhood grouping, with the exception of Stone Brook, which bears keeping an eye on. 
 
 ```{r}
-# Summary of Sale Price averages by neighorhood and year sold
-nbhd.yr.sold <- ames.transf %>%
-  select(Sale_Price,Neighborhood,Year_Sold) %>%
-  group_by(Neighborhood,Year_Sold) %>%
-  summarise(M.Sale_Price = mean(Sale_Price))
+# Run correlation analysis of numerical variables to sale price
+nbhd_corr <- cor(ames[setdiff(names(ames)[sapply(ames, is.numeric)],"Sale_Price")],ames["Sale_Price"])
 
-# Graph of Sale Price average by year sold by neighborhood
-ggplot(nbhd.yr.sold,aes(Year_Sold, M.Sale_Price, color=Neighborhood)) +
-  geom_point() +
-  facet_wrap(~Neighborhood) +
-   labs(title = "Top Neighborhoods: Recency (Year Sold)", 
-       colour = "Neighborhood") +
-  xlab("Year Sold") + ylab("Sale Price") +
-  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+# Select top six (7) variables from correlation analysis
+which(-nbhd_corr <= sort(-nbhd_corr)[7], arr.ind = TRUE)
 
-```
-
-4b. Neighborhood Comps: Feature Similarities
-
-For feature similarities, we also use Opendoor's list as a guide, which lists type of home, year built, number of bedrooms, bathrooms and square footage. We will use House Style for type of home, limit our the number of bedrooms and bathrooms to above ground, and use both lot and livable area for square footage. 
-
-We start by creating a new variable for the number of bathrooms by combining full baths and half baths. We decided not to include the bathrooms in the basement in order to maintain consistency with the number of bedrooms and livable area, which are both referring to areas that are above ground. 
-
-At this point, we felt that this would be a good point to start building our model using the features selected. Using the linear regression function, we were able to calculate an 83% adjusted R squared, indicating a high model accuracy. 
-
-However, we were also curious to see if an alternate model based on the highest correlated variables might show greater accuracy. Surprisingly, the model  also showed an 83% adjusted R squared with about a half percent difference. 
- 
-```{r}
-# Add new variable, addings full baths and half baths
-ames.nbhd$Bathroom_AbvGr <- ames.nbhd$Full_Bath + (0.5 * ames.nbhd$Half_Bath)
-ames.transf$Bathroom_AbvGr <- ames.transf$Full_Bath + (0.5 * ames.transf$Half_Bath)
-
-# Create linear regression model using opendoor.com's list of features
-fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AbvGr + Lot_Area + Gr_Liv_Area, data = ames.nbhd)
-
-summary(fit.opendoor)
-# Model adjusted r squared and graph
-summary(fit.opendoor)$adj.r.squared
-plot(fit.opendoor, which = 1, main = "Opendoor")
-
-# Correlation summary of numerical variables to Sale Price
-nbhd_corr <- cor(ames.nbhd[setdiff(names(ames.nbhd)[sapply(ames.nbhd, is.numeric)],"Sale_Price")],ames.nbhd["Sale_Price"])
-
-# Top six variables correlating to Sale Price
-which(-nbhd_corr <= sort(-nbhd_corr)[6], arr.ind = TRUE)
-
-# Create linear regression model using correlation result list
-fit.corr <- lm(Sale_Price ~ Gr_Liv_Area + First_Flr_SF + Total_Bsmt_SF+ Lot_Area + TotRms_AbvGrd + Garage_Area, data = ames.nbhd)
+# Run linear regression analysis of top variables from correlation to sale price
+fit.corr <- lm(Sale_Price ~ Lot_Area + Total_Bsmt_SF+  First_Flr_SF + Gr_Liv_Area + TotRms_AbvGrd + Garage_Cars + Garage_Area, data = ames)
 
 # Model adjusted r squared and graph
 summary(fit.corr)$adj.r.squared
-plot(fit.opendoor, which = 1, main = "Correlation")
+plot(fit.corr, which = 1, main = "Correlation")
+```
 
-# House Style (Boxplot by Neighborhood)
-ggplot(ames.transf,aes(Sale_Price, House_Style, fill = Neighborhood)) +
-  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
+After identifying the most highly correlated numerical variables using the correlation
+analysis above, which yielded us an R^2 explanatory score of 0.75 (which is the proportion of variance in our dependent variable Sale Price explained by the independent variables in the linear regression equation), it was time to begin identifying the variables we would use in our new model using some reliable sources.
+We decided to select the variables for our linear regression model based on variables
+identified from and Opendoor article (Gomez, 2022) which aimed to identify the most
+critical factors which influence a home's value. We then mapped these factors to 
+corresponding variables in our dataset. These factors and their mappings included:
+Type of Home -> [House_Style], Number of Bedrooms -> [Bedroom_AbvGr], Number of Bathrooms 
+-> [Bathroom_AbvGr], Square Footage (Lot) -> [Lot_Area], Square Footage (Usable Space) -> 
+[Gr_Liv_Area] and Age & Condition / Quality (Exterior Quality) -> [Overall_Qual];
+
+We only needed to newly create one of these variables (Bathroom_AbvGr), which combined
+full baths (Full_Bath) and half baths (Half_Bath) into one. Additionally, we originally
+included overall condition (Overall_Cond) in the variables we would map to the Age & Condition / Quality factor; However, we ultimately ended up not including this because it had very little explanatory power in our linear regression model summary. It should also be
+noted that the linear regression model we built based on the critical factors from our
+sources (Gomez, 2022) only included Lot_Area and Gr_Liv_Area as numerical variables
+which carried over from the correlation analysis.
+
+```{r}
+# Add new variable, addings full baths and half baths
+ames$Bathroom_AbvGr <- ames$Full_Bath + ames$Half_Bath
+
+# Run linear regression analysis using opendoor.com's list of features
+fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AbvGr + Lot_Area + Gr_Liv_Area + Overall_Qual, data = ames)
+
+# Model adjusted r squared and graph
+summary(fit.opendoor)$adj.r.squared
+plot(fit.opendoor, which = 1, main = "Opendoor")
+```
+
+After putting together our own linear regression model based off of our Opendoor
+source for critical factors in home value, which included two new categorical variables
+(House_Style & Overall_Qual), we were able to generate a higher R^2 explanatory score
+of 0.872 (which is the proportion of variance in our dependent variable Sale Price  explained by the independent variables in the linear regression equation). 
+
+Seeing that we were able to generate a better explanatory set of variables through
+consulting our sources, we found it prudent to proceed with our top neighborhood 
+comparisons using visualizations of these variables with the ultimate goal of producing
+some form of comparison and ranking per factor and variable, allowing anyone interested in investing in these neighborhoods to visualize how they each compare across the most critical 
+factors in determining home value.
+
+# Results
+
+## Factors 1: Features (Type of Home, No of Bedrooms and Bathrooms)
+
+Beginning with the factors falling into the features category, we would first visualize
+and compare the variables corresponding to Type of Home, Bedrooms and Bathrooms
+across the neighborhoods in Ames:
+
+Type of Home (Home Style): First, it is important to note that the house style of approximately 90% of the home observations fall into one of three (3) categories: One-Story (49%), Two-Story (30%) and One-1/2-Story (11%); see Chart 1. That being said, in the majority of neighborhoods two-stories tended to be the highest sold (Graph 1). In addition, neighborhoods Northridge and Northridge Heights came out far ahead in sales price by house style, with Someserset and Stone Brook coming out slightly ahead in the one-story and two-story home styles respectively. 
+
+No of Bedrooms/Bathrooms: The number of bedrooms does not seem to highly impact sale price, when between 2-4 bedrooms (see Graph #2). This is particularly telling seeing as the majority of observations fall within this same range (Chart#2). As for the number of bathrooms, the story seems to change, with more bathrooms leading to a higher sales price, especially for 2-2.5 bathrooms (Graph #3). The majority of observations fall within the 1-2.5 range.
+	
+```{r}
+# Chart 1 - Observations by House Style
+ames %>%
+  	group_by(House_Style) %>%
+  	summarise(Count = n(), Percent = n()/nrow(ames)*100) %>%
+  	arrange(desc(Count))
+
+	# Chart 2 - Observations by No. of Bedrooms/Bathrooms
+library(janitor)
+ames %>%
+pivot_wider(id_cols = Bedroom_AbvGr, names_from = Bathroom_AbvGr, values_from = Bathroom_AbvGr, values_fn = list(Bathroom_AbvGr=length), values_fill = 0, names_sort = TRUE) %>%
+  	arrange(Bedroom_AbvGr) %>%
+  	adorn_totals(c("row","col"))
+
+# Graph 1 - House Style (Boxplot by Neighborhood)
+library(scales)
+ggplot(ames,aes(Sale_Price, House_Style, fill = Top_Nbhd)) +
+  geom_boxplot(data = transform(ames, Top_Nbhd = NULL), fill = "grey85") +
   geom_boxplot() +
-  facet_wrap(~Neighborhood) +
+  facet_wrap(~Top_Nbhd) +
   labs(title = "Top Neighborhoods: House Style", 
        colour = "Neighborhood") +
   xlab("House Style") + ylab("Sale Price") +
   scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
 
-# Year Built (Scatter plot by Neighborhood)
-ggplot(ames.transf,aes(Year_Built, Sale_Price, color = Neighborhood)) +
-  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
-  geom_point() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Year Built", 
-       colour = "Neighborhood") +
-  xlab("Year Built") + ylab("Sale Price") +
-  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-# Bedrooms (Scatter plot by Neighborhood)
+# Graph 2 - Bedrooms (Scatter plot by Neighborhood)
 ggplot() +
-  geom_point(data = ames.transf, aes(Bedroom_AbvGr, Sale_Price, color = Neighborhood)) +
+  geom_point(data = ames, aes(Bedroom_AbvGr, Sale_Price, color = Top_Nbhd)) +
   labs(title = "Top Neighborhoods: Bedrooms") +
   xlab("Bedrooms") + ylab("Sale Price") +
   scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
 
-# Bathrooms (Scatter plot by Neighborhood)
+# Graph 3 - Bathrooms (Scatter plot by Neighborhood)
 ggplot() +
-  geom_point(data = ames.transf, aes(Bathroom_AbvGr, Sale_Price, color = Neighborhood)) +
+  geom_point(data = ames, aes(Bathroom_AbvGr, Sale_Price, color = Top_Nbhd)) +
   labs(title = "Top Neighborhoods: Bathrooms (Above Ground)") +
   xlab("Bathrooms") + ylab("Sale Price") +
   scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
-
-# Lot Area (Scatter plot by Neighborhood)
-ggplot(ames.transf,aes(Lot_Area, Sale_Price, color = Neighborhood)) +
-  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
-  geom_point() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Lot Area") +
-  xlab("Lot Area") + ylab("Sale Price") +
-  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
-
-# Livable Area (Scatter plot by Neighborhood) 
-  ggplot(ames.transf,aes(Gr_Liv_Area, Sale_Price, color = Neighborhood)) +
-  geom_point(data = transform(ames.transf, Neighborhood = NULL), color = "grey85") +
-  geom_point() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Livable Area") +
-  xlab("Livable Area") + ylab("Sale Price") +
-  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
 ```
-4c. Neighborhood Comps: Distance
-****ADD NARRATIVE TO TIE TO RESULTS (I.E. HOA FOR TOP PICK NEIGHBORHOODS)??? ****
 
-4d. Neighborhoods Comps: Condition & Quality
+## Square Footage (Home Size and Usable Space)
 
-Opendoor stresses that there is quite a bit of value in knowing that repairs will not
-be necessary for a while after purchasing a home. This depends on the condition of 
-the property when it is bought, as well as the materials and finish which make up 
-the initial quality of the home. The better the materials and finish, the longer a 
-buyer will have before they need to pay for repairs, adding value to the sales price
-of a home. 
-For this category, we'll be looking at the Overall_Cond variable for condition and
-the Overall_Qual variable for quality:
+Following features, we would now look into the factors in the Square Footage category,
+visualizing and comparing the variables corresponding to Home Size and Usable Space 
+across the neighborhoods in Ames:
+
+Home Size (Lot Area): The lot areas for the majority of the selected neighborhoods tended to be smaller and were generally under 25K square feet (see Graph #4). Northridge and Stone Brook did have a few larger lots, but for the most part home size was not hugely significant. 
+
+Usable Space (Liveable Area): Livable area on the other hand, did show a strong relationship with sale price for all neighborhoods (see Graph #5). As far as sales price per square
+footage of liveable area, we found Northridge Heights, Stone Brook, and Northridge 
+coming out ahead of the other neighborhoods (see Graph #5).
 
 ```{r}
-# Overall Condition (Scatter plot by Neighborhood)
+	# Graph 4 - Lot Area (Scatter plot by Neighborhood)
+ggplot(ames,aes(Lot_Area, Sale_Price, color = Top_Nbhd)) +
+  	geom_point(data = transform(ames, Top_Nbhd = NULL), color = "grey85") +
+  	geom_point() +
+  	facet_wrap(~Top_Nbhd) +
+  	labs(title = "Top Neighborhoods: Lot Area") +
+  	xlab("Lot Area") + ylab("Sale Price") +
+  	scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+
+# Graph 5 - Livable Area (Scatter plot by Neighborhood) 
+  	ggplot(ames,aes(Gr_Liv_Area, Sale_Price, color = Top_Nbhd)) +
+  	geom_point(data = transform(ames, Top_Nbhd = NULL), color = "grey85") +
+  	geom_point() +
+  	facet_wrap(~Top_Nbhd) +
+  	labs(title = "Top Neighborhoods: Livable Area") +
+  	xlab("Livable Area") + ylab("Sale Price") +
+  	scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
+```
+
+## Age & Condition / Quality
+
+Following Square Footage, we would now look into the factors in the Age & Condition category, visualizing and comparing the variables corresponding to such across the neighborhoods in Ames:
+
+Age (Year Built): Generally speaking, we found a strong positive correlation between
+year built and sales price, with the most expensive houses sold having been built more
+recently. As far as our top neighborhoods, Northridge, Northridge Heights and Stone Brook
+came out ahead in this category (see Graph #6).
+
+
+```{r}
+#  Graph 6 - Year Built (Scatter plot by Neighborhood)
+ggplot(ames,aes(Year_Built, Sale_Price, color = Top_Nbhd)) +
+  geom_point(data = transform(ames, Top_Nbhd = NULL), color = "grey85") +
+  geom_point() +
+  facet_wrap(~Top_Nbhd) +
+  labs(title = "Top Neighborhoods: Year Built", 
+       colour = "Neighborhood") +
+  xlab("Year Built") + ylab("Sale Price") +
+  scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+```
+
+Condition / Quality (Overall Condition): We found that this variable held little
+explanatory significance seeing that the majority of real-estate sales and the highest
+sales prices amongst those fell into the "average" overall condition category across
+all neighborhoods (see Graph #7). For this reason we removed this variable from our linear regression equation.
+
+Condition / Quality (Overall Quality): We found a strong positive correlation between
+overall quality and sales price, and the leading neighborhoods in this category were
+once again Northridge Heights, Northridge and Stone Brook (see Graph #8).
+
+
+```{r}
+# Graph 7 - Overall Condition (Scatter plot by Neighborhood)
 ggplot() +
-  geom_point(data = ames.transf, aes(Overall_Cond, Sale_Price, color = Neighborhood)) +
+  geom_point(data = ames, aes(Overall_Cond, Sale_Price, color = Top_Nbhd)) +
   labs(title = "Top Neighborhoods: Overall Condition") +
   xlab("Quality") + ylab("Sale Price") +
   scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
 
-# Overall Quality (Scatter plot by Neighborhood)
+# Graph 8 - Overall Quality (Scatter plot by Neighborhood)
 ggplot() +
-  geom_point(data = ames.transf, aes(Overall_Qual, Sale_Price, color = Neighborhood)) +
+  geom_point(data = ames, aes(Overall_Qual, Sale_Price, color = Top_Nbhd)) +
   labs(title = "Top Neighborhoods: Overall Quality") +
   xlab("Quality") + ylab("Sale Price") +
   scale_y_continuous(labels = label_number(suffix = "K", scale = 1e-3))
 
 ```
-As we can see from the above, overall condition does not seem consistently trend
-with the sales price of a home seeing as the houses with the highest sales prices
-fell into the "average" condition category. This includes pretty much all of the 
-houses in our top neighborhoods.
-Overall quality however, seems to have a strong positive correlation with sales price
-and we can see from the graph that the houses in the neighborhoods we selected as
-the highest performing also have the highest overall quality of material and finish.
-Seeing as such, we'll go ahead and add Overall_Qual to our Opendoor influenced linear regression model and see how much it improves our R^2 value:
 
-```{r}
-# Create linear regression model using opendoor.com's list of features
-fit.opendoor <- lm(Sale_Price ~ House_Style + Year_Built + Bedroom_AbvGr + Bathroom_AbvGr + Lot_Area + Gr_Liv_Area + Overall_Qual, data = ames.nbhd)
+# Discussion
 
-summary(fit.opendoor)
-# Model adjusted r squared and graph
-summary(fit.opendoor)$adj.r.squared
-plot(fit.opendoor, which = 1, main = "Opendoor")
-```
-As we can see above, adding Overall_Quality to our regression model improved our
-R^2 value by nearly 7%, making it a significantly correlated variable we'll be keeping
-in our final model.
+While we found that of our top neighborhoods, Northridge Heights, Northridge, and 
+Stone Brook consistently came out on top for most of our critical factors in determing
+home value, there is still plenty of nuance when it comes to real-estate investment
+and anyone looking to invest in this area would ultimately want to look into which
+critical factors are the most important to them and select the top neighborhoods
+they would want to look into based on their picks for these factors.
 
-4e. Neighborhood Comps: Location
-For location or placement as opendoor.com calls it, we have decided to look at a couple more variables, namely MS Zoning, Land Countour, Land Slope, and Condition 1 or proximity to various conditions such as arterial or feeder streets, railroads, or off-site features such as parks, greenbelts, etc.
+On an factor by factor basis, we can now reflect on the ways our study could have
+been improved or have been made more nuanced:
 
-```{r}
-# MS Zoning
-  ggplot(ames.transf,aes(Sale_Price, MS_Zoning, fill = Neighborhood)) +
-  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
-  geom_boxplot() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Zoning", 
-       colour = "Neighborhood") +
-  xlab("Zoning") + ylab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
+Features (Type of Home, No of Bedrooms and Bathrooms) - While the graph used was able to show the distribution of sale prices amongst the neighborhood by house style, the analysis may have benefitted from a deeper look into the number and proportion of house styles sold by neighborhood. 
+For example: Did Northridge or Northridge Heights sell more two-story homes than the other neighborhoods in proportion to how many two-story homes were sold in total during the period covered? Could this be an indicator of not only home but also neighborhood value? 
+As for the number of bedrooms and bathrooms, the same could be said: 
+Do neighborhoods with homes that have more bedrooms or bathrooms indicate a better investment? 
+It would be interesting to explore these questions in a subsequent study. 
 
-# Land Contour
-  ggplot(ames.transf,aes(Sale_Price, Land_Contour, fill = Neighborhood)) +
-  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
-  geom_boxplot() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Land Contour", 
-       colour = "Neighborhood") +
-  xlab("Land Contour") + ylab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-# Land Slope
-  ggplot(ames.transf,aes(Sale_Price, Land_Slope, fill = Neighborhood)) +
-  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
-  geom_boxplot() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Land Slope", 
-       colour = "Neighborhood") +
-  xlab("Land Slope") + ylab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-# Condition 1 (Proximity to various conditions)
-  ggplot(ames.transf,aes(Sale_Price, Condition_1, fill = Neighborhood)) +
-  geom_boxplot(data = transform(ames.transf, Neighborhood = NULL), fill = "grey85") +
-  geom_boxplot() +
-  facet_wrap(~Neighborhood) +
-  labs(title = "Top Neighborhoods: Proximity", 
-       colour = "Neighborhood") +
-  xlab("Proximity") + ylab("Sale Price") +
-  scale_x_continuous(labels = label_number(suffix = "K", scale = 1e-3)) 
-
-# **** ADD ANY TO MODEL? ONLY LAND CONTOUR INCREASES TO 84.03%. MATERIAL? MAY NEED MAP ****
-
-```
+Square Footage (Home Size and Usable Space) - Lot area (Home Size) did not seem to indicate a strong relationship with sale price for any of the neighborhoods, and this was 
+especially true for the top neighborhoods selected. However, this is not the case for livable area (Usable Space), which seems to be a stronger predictor of sale price across all neighborhoods, including the top neighborhoods selected, with the exception of Bloomington Heights and Greens. A deeper look into these neighborhoods in a subsequent study would be interesting. 
 
 
+# References
 
+A list of References should include all data sources, R packages, and textbook references, in addition to those that provide background and context for the research problem. It is fine that many references can only be accessed online, especially if you include an actual link. You may choose an appropriate style manual for your field, or use APA style as a default. The style guide itself isn't as important here as empowering an interested reader to find the source themselves. 
 
+## Data Sources
 
-## Results
+We used The Ames Housing Dataset, which is a well-known dataset in the field of machine learning and data analysis. It contains various features and attributes of residential homes in Ames, Iowa, USA.
+This set has 2930 observations and a large number of explanatory variables (23 nominal, 
+23 ordinal, 14 discrete, and 20 continuous).
 
+## R Packages
 
-## Discussion
-
-
+1. "AmesHousing"
+2. tidyverse
+3. janitor
+4. scales
 
 ## Citations
 
 1. Jones, Jonathan. “Cities with the Largest Increase in Home Prices over the Last Decade [2023].” Construction Coverage, December 6, 2023. https://constructioncoverage.com/research/cities-with-the-largest-home-price-growth-last-decade#:~:text=Over%20the%20past%20decade%2C%20which,Index%20rose%20by%20just%2032%25. 
 
 2. Redfin. “Iowa Housing Market.” Redfin. Accessed January 26, 2024. https://www.redfin.com/state/Iowa/housing-market. 
+
+3. DeCock, Dean. “Ames Iowa: Alternative to the Boston Housing Data Set.” Jse.amstat.org. Accessed January 26, 2024. https://jse.amstat.org/v19n3/decock/DataDocumentation.txt. 
+
+4. Gomez, Joe. “Sell Your Home the Minute You’re Ready.” Opendoor, June 4, 2022. https://www.opendoor.com/articles/factors-that-influence-home-value. 
+
+
